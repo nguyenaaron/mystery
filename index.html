@@ -301,6 +301,52 @@
             color: #999;
             font-size: 0.9rem;
         }
+
+        /* Transition screen */
+        .transition-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffafbd 0%, #ffc3a0 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 998;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .transition-screen.active {
+            display: flex;
+        }
+
+        .transition-content {
+            text-align: center;
+            background: rgba(255,255,255,0.9);
+            padding: 40px 60px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .transition-content img {
+            width: 200px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .transition-content h2 {
+            color: #e84a5f;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .transition-content p {
+            color: #999;
+            font-size: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
@@ -326,6 +372,14 @@
         </div>
         <div class="puzzle-pieces-tray" id="puzzleTray"></div>
         <p class="puzzle-hint">Drag pieces into the grid</p>
+    </div>
+
+    <div class="transition-screen" id="transitionScreen" onclick="showQuestion()">
+        <div class="transition-content">
+            <img src="puzzle.png" alt="Bunny">
+            <h2>I have a question for you...</h2>
+            <p>click anywhere to continue</p>
+        </div>
     </div>
 
     <div class="floating-hearts" id="floatingHearts"></div>
@@ -554,9 +608,14 @@
             if (complete) {
                 setTimeout(() => {
                     document.getElementById('puzzleScreen').classList.remove('active');
-                    document.querySelector('.container').style.display = 'block';
+                    document.getElementById('transitionScreen').classList.add('active');
                 }, 800);
             }
+        }
+
+        function showQuestion() {
+            document.getElementById('transitionScreen').classList.remove('active');
+            document.querySelector('.container').style.display = 'block';
         }
     </script>
 </body>
