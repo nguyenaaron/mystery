@@ -31,6 +31,7 @@
             max-width: 600px;
             position: relative;
             z-index: 10;
+            display: none;
         }
 
         h1 {
@@ -180,7 +181,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ffafbd 0%, #ffc3a0 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -209,6 +210,97 @@
             opacity: 0.8;
             animation: pulse 2s ease-in-out infinite;
         }
+
+        /* Puzzle screen */
+        .puzzle-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffafbd 0%, #ffc3a0 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            flex-direction: column;
+        }
+
+        .puzzle-screen.active {
+            display: flex;
+        }
+
+        .puzzle-screen h2 {
+            color: #e84a5f;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .puzzle-container {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 4px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .puzzle-slot {
+            width: 100px;
+            height: 100px;
+            background: rgba(232,74,95,0.1);
+            border: 2px dashed #e84a5f;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .puzzle-slot.correct {
+            border: 2px solid #4CAF50;
+            background: rgba(76,175,80,0.1);
+        }
+
+        .puzzle-piece {
+            width: 96px;
+            height: 96px;
+            background-image: url('puzzle.png');
+            background-size: 300px 300px;
+            border-radius: 6px;
+            cursor: grab;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .puzzle-piece:hover {
+            transform: scale(1.05);
+        }
+
+        .puzzle-piece.dragging {
+            opacity: 0.8;
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        .puzzle-pieces-tray {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            max-width: 350px;
+            justify-content: center;
+        }
+
+        .puzzle-hint {
+            margin-top: 15px;
+            color: #999;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -217,6 +309,23 @@
             <h2>Hi Paige</h2>
             <p>tap anywhere to continue</p>
         </div>
+    </div>
+
+    <div class="puzzle-screen" id="puzzleScreen">
+        <h2>Complete the puzzle!</h2>
+        <div class="puzzle-container" id="puzzleContainer">
+            <div class="puzzle-slot" data-index="0"></div>
+            <div class="puzzle-slot" data-index="1"></div>
+            <div class="puzzle-slot" data-index="2"></div>
+            <div class="puzzle-slot" data-index="3"></div>
+            <div class="puzzle-slot" data-index="4"></div>
+            <div class="puzzle-slot" data-index="5"></div>
+            <div class="puzzle-slot" data-index="6"></div>
+            <div class="puzzle-slot" data-index="7"></div>
+            <div class="puzzle-slot" data-index="8"></div>
+        </div>
+        <div class="puzzle-pieces-tray" id="puzzleTray"></div>
+        <p class="puzzle-hint">Drag pieces into the grid</p>
     </div>
 
     <div class="floating-hearts" id="floatingHearts"></div>
@@ -333,7 +442,121 @@
         // Enter site and play music
         function enterSite() {
             document.getElementById('intro').classList.add('hidden');
+            document.getElementById('puzzleScreen').classList.add('active');
             document.getElementById('bgMusic').src = 'https://www.youtube.com/embed/uGa_VXTZfrc?autoplay=1&loop=1';
+            initPuzzle();
+        }
+
+        // Puzzle functionality
+        function initPuzzle() {
+            const tray = document.getElementById('puzzleTray');
+            const positions = [
+                { x: 0, y: 0 },
+                { x: -100, y: 0 },
+                { x: -200, y: 0 },
+                { x: 0, y: -100 },
+                { x: -100, y: -100 },
+                { x: -200, y: -100 },
+                { x: 0, y: -200 },
+                { x: -100, y: -200 },
+                { x: -200, y: -200 }
+            ];
+
+            // Create shuffled pieces
+            let indices = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            indices.sort(() => Math.random() - 0.5);
+
+            indices.forEach(i => {
+                const piece = document.createElement('div');
+                piece.className = 'puzzle-piece';
+                piece.draggable = true;
+                piece.dataset.index = i;
+                piece.style.backgroundPosition = `${positions[i].x}px ${positions[i].y}px`;
+
+                piece.addEventListener('dragstart', handleDragStart);
+                piece.addEventListener('dragend', handleDragEnd);
+
+                tray.appendChild(piece);
+            });
+
+            // Set up drop zones
+            document.querySelectorAll('.puzzle-slot').forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('dragleave', handleDragLeave);
+            });
+
+            // Also allow dropping back to tray
+            tray.addEventListener('dragover', handleDragOver);
+            tray.addEventListener('drop', handleTrayDrop);
+        }
+
+        let draggedPiece = null;
+
+        function handleDragStart(e) {
+            draggedPiece = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragLeave(e) {
+            this.style.background = '';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const slot = this;
+
+            // If slot already has a piece, move it back to tray
+            if (slot.children.length > 0) {
+                document.getElementById('puzzleTray').appendChild(slot.children[0]);
+            }
+
+            slot.appendChild(draggedPiece);
+
+            // Check if correct
+            if (draggedPiece.dataset.index === slot.dataset.index) {
+                slot.classList.add('correct');
+            } else {
+                slot.classList.remove('correct');
+            }
+
+            checkPuzzleComplete();
+        }
+
+        function handleTrayDrop(e) {
+            e.preventDefault();
+            if (draggedPiece && draggedPiece.parentElement !== this) {
+                draggedPiece.parentElement.classList.remove('correct');
+                this.appendChild(draggedPiece);
+            }
+        }
+
+        function checkPuzzleComplete() {
+            const slots = document.querySelectorAll('.puzzle-slot');
+            let complete = true;
+
+            slots.forEach(slot => {
+                if (!slot.classList.contains('correct')) {
+                    complete = false;
+                }
+            });
+
+            if (complete) {
+                setTimeout(() => {
+                    document.getElementById('puzzleScreen').classList.remove('active');
+                    document.querySelector('.container').style.display = 'block';
+                }, 800);
+            }
         }
     </script>
 </body>
