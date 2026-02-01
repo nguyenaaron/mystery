@@ -99,6 +99,13 @@
             color: #666;
         }
 
+        .hint {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #999;
+            font-style: italic;
+        }
+
         .response {
             display: none;
         }
@@ -181,6 +188,7 @@
                 <button class="btn btn-yes" onclick="sayYes()">yes</button>
                 <button class="btn btn-no" onmouseover="moveButton(this)">no</button>
             </div>
+            <p class="hint">(try clicking no)</p>
         </div>
 
         <div class="response" id="response">
