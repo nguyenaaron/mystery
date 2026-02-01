@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Will You Be My Valentine?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #ffafbd 0%, #ffc3a0 100%);
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 60px 80px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            color: #e84a5f;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .heart-icon {
+            font-size: 4rem;
+            color: #e84a5f;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .nailong-icon {
+            animation: pulse 1s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        .nailong-icon img {
+            width: 150px;
+            height: auto;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .message {
+            font-size: 1.2rem;
+            color: #555;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-yes {
+            background: #e84a5f;
+            color: white;
+        }
+
+        .btn-yes:hover {
+            background: #d63e52;
+            transform: scale(1.1);
+        }
+
+        .btn-no {
+            background: #ccc;
+            color: #666;
+        }
+
+        .response {
+            display: none;
+        }
+
+        .response h2 {
+            color: #e84a5f;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .response p {
+            font-size: 2rem;
+            color: #555;
+            font-weight: 700;
+        }
+
+        /* Floating hearts background */
+        .floating-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .floating-heart {
+            position: absolute;
+            font-size: 20px;
+            animation: float 4s ease-in-out infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .celebration {
+            display: none;
+        }
+
+        .celebration.active {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-hearts" id="floatingHearts"></div>
+
+    <div class="container">
+        <div class="question" id="question">
+            <div class="nailong-icon"><img src="image.png" alt="Nailong"></div>
+            <h1>Paige will you be my valentine?</h1>
+            <p class="message">
+                
+            </p>
+            <div class="buttons">
+                <button class="btn btn-yes" onclick="sayYes()">yes</button>
+                <button class="btn btn-no" onmouseover="moveButton(this)">no</button>
+            </div>
+        </div>
+
+        <div class="response" id="response">
+            <h2></h2>
+            <p>Yay!!! I cant wait to see you!!</p>
+            <p style="font-size: 3rem; margin-top: 20px;">&#128149; &#128149; &#128149;</p>
+        </div>
+    </div>
+
+    <div class="celebration" id="celebration"></div>
+
+    <script>
+        // Create floating hearts and apples
+        function createFloatingHearts() {
+            const container = document.getElementById('floatingHearts');
+            const items = ['❤️', '🍎', '❤️', '🍎', '💕', '🍎'];
+            for (let i = 0; i < 30; i++) {
+                const item = document.createElement('div');
+                item.className = 'floating-heart';
+                item.innerHTML = items[Math.floor(Math.random() * items.length)];
+                item.style.left = Math.random() * 100 + '%';
+                item.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                item.style.animationDelay = Math.random() * 4 + 's';
+                item.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                container.appendChild(item);
+            }
+        }
+
+        // Move the "No" button away and grow "Yes" button
+        let yesScale = 1;
+        function moveButton(btn) {
+            const container = document.querySelector('.container');
+            const containerRect = container.getBoundingClientRect();
+
+            // Random position within the container bounds
+            const maxX = containerRect.width - btn.offsetWidth - 40;
+            const maxY = 150;
+
+            const newX = Math.random() * maxX - maxX/2;
+            const newY = Math.random() * maxY - maxY/2;
+
+            btn.style.position = 'relative';
+            btn.style.left = newX + 'px';
+            btn.style.top = newY + 'px';
+            btn.style.transition = 'all 0.1s ease';
+
+            // Make Yes button bigger
+            yesScale += 0.1;
+            const yesBtn = document.querySelector('.btn-yes');
+            yesBtn.style.transform = `scale(${yesScale})`;
+        }
+
+        // Handle "Yes" click
+        function sayYes() {
+            document.getElementById('question').style.display = 'none';
+            document.getElementById('response').style.display = 'block';
+            document.body.style.background = 'url("a984cc337b3bbfdbeb8040acb2017b46.gif") center/50% no-repeat #ffafbd';
+            document.getElementById('floatingHearts').style.display = 'none';
+            createCelebration();
+        }
+
+        // Create celebration effect
+        function createCelebration() {
+            const celebration = document.getElementById('celebration');
+            celebration.classList.add('active');
+
+            const items = ['❤️', '🍎', '❤️', '🍎', '💕', '🍎'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.innerHTML = items[Math.floor(Math.random() * items.length)];
+                    heart.style.position = 'fixed';
+                    heart.style.left = Math.random() * 100 + '%';
+                    heart.style.top = '-50px';
+                    heart.style.fontSize = (Math.random() * 30 + 20) + 'px';
+                    heart.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+                    celebration.appendChild(heart);
+                }, i * 100);
+            }
+
+            // Add falling animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fall {
+                    to {
+                        transform: translateY(100vh) rotate(360deg);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        createFloatingHearts();
+    </script>
+</body>
+</html>
