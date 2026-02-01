@@ -172,9 +172,53 @@
             pointer-events: none;
             z-index: 100;
         }
+
+        /* Intro screen */
+        .intro {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+            transition: opacity 0.5s ease;
+        }
+
+        .intro.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .intro-content {
+            text-align: center;
+            color: white;
+        }
+
+        .intro-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .intro-content p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            animation: pulse 2s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
+    <div class="intro" id="intro" onclick="enterSite()">
+        <div class="intro-content">
+            <h2>Hi Paige</h2>
+            <p>tap anywhere to continue</p>
+        </div>
+    </div>
+
     <div class="floating-hearts" id="floatingHearts"></div>
 
     <div class="container">
@@ -286,14 +330,11 @@
 
         createFloatingHearts();
 
-        // Play music on first click
-        let musicStarted = false;
-        document.addEventListener('click', function() {
-            if (!musicStarted) {
-                document.getElementById('bgMusic').src = 'https://www.youtube.com/embed/uGa_VXTZfrc?autoplay=1&loop=1';
-                musicStarted = true;
-            }
-        });
+        // Enter site and play music
+        function enterSite() {
+            document.getElementById('intro').classList.add('hidden');
+            document.getElementById('bgMusic').src = 'https://www.youtube.com/embed/uGa_VXTZfrc?autoplay=1&loop=1';
+        }
     </script>
 </body>
 </html>
